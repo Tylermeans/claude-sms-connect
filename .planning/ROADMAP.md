@@ -28,10 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can reply with freeform text and it is sent to tmux session verbatim
   4. All hook endpoints require valid bearer token auth
   5. All inbound SMS webhooks validate Twilio signature
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] TBD (planned during /gsd:plan-phase 1)
+- [ ] 01-01-PLAN.md — Bootstrap Node.js + Express server with bearer auth middleware
+- [ ] 01-02-PLAN.md — Tmux integration service (capture context, send keys)
+- [ ] 01-03-PLAN.md — Twilio integration and end-to-end hook-to-SMS flow
 
 ### Phase 2: Multi-Project Support
 **Goal**: Users can manage multiple simultaneous Claude Code sessions through a single SMS thread with numbered prompts and arming controls
@@ -68,7 +70,7 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Server + Twilio Integration | 0/TBD | Not started | - |
+| 1. Core Server + Twilio Integration | 0/3 | Ready to execute | - |
 | 2. Multi-Project Support | 0/TBD | Not started | - |
 | 3. Hardening + Setup | 0/TBD | Not started | - |
 
