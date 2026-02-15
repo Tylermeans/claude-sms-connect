@@ -70,32 +70,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RELAY-01 | — | Pending |
-| RELAY-02 | — | Pending |
-| RELAY-03 | — | Pending |
-| RELAY-04 | — | Pending |
-| RELAY-05 | — | Pending |
-| RELAY-06 | — | Pending |
-| RELAY-07 | — | Pending |
-| RELAY-08 | — | Pending |
-| RELAY-09 | — | Pending |
-| RELAY-10 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| SEC-04 | — | Pending |
-| SEC-05 | — | Pending |
-| OPS-01 | — | Pending |
-| OPS-02 | — | Pending |
-| OPS-03 | — | Pending |
-| OPS-04 | — | Pending |
-| OPS-05 | — | Pending |
+| RELAY-01 | Phase 1 | Pending |
+| RELAY-02 | Phase 1 | Pending |
+| RELAY-03 | Phase 1 | Pending |
+| RELAY-04 | Phase 1 | Pending |
+| RELAY-05 | Phase 1 | Pending |
+| RELAY-06 | Phase 1 | Pending |
+| RELAY-07 | Phase 2 | Pending |
+| RELAY-08 | Phase 2 | Pending |
+| RELAY-09 | Phase 2 | Pending |
+| RELAY-10 | Phase 2 | Pending |
+| SEC-01 | Phase 1 | Pending |
+| SEC-02 | Phase 1 | Pending |
+| SEC-03 | Phase 3 | Pending |
+| SEC-04 | Phase 1 | Pending |
+| SEC-05 | Phase 1 | Pending |
+| OPS-01 | Phase 2 | Pending |
+| OPS-02 | Phase 3 | Pending |
+| OPS-03 | Phase 3 | Pending |
+| OPS-04 | Phase 1 | Pending |
+| OPS-05 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-15*
-*Last updated: 2026-02-15 after initial definition*
+*Last updated: 2026-02-15 after roadmap creation*
