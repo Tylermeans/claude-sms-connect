@@ -45,10 +45,11 @@ Plans:
   3. User can text "ON" to arm SMS alerts and "OFF" to disarm
   4. User receives welcome SMS when a new project registers for the first time
   5. Notifications respect rate limiting (max 1 per 5 seconds per project)
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] TBD (planned during /gsd:plan-phase 2)
+- [ ] 02-01-PLAN.md — ProjectRegistry service and per-project rate limiter middleware
+- [ ] 02-02-PLAN.md — Multi-project routing, ON/OFF arming, welcome SMS, graceful session handling
 
 ### Phase 3: Hardening + Setup
 **Goal**: Server filters sensitive data from terminal output and provides one-command setup for new users
@@ -71,7 +72,7 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Server + Twilio Integration | 3/3 | ✓ Complete | 2026-02-15 |
-| 2. Multi-Project Support | 0/TBD | Not started | - |
+| 2. Multi-Project Support | 0/2 | Not started | - |
 | 3. Hardening + Setup | 0/TBD | Not started | - |
 
 ---
