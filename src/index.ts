@@ -6,8 +6,8 @@
 
 import 'dotenv/config';
 import express from 'express';
-import { bearerAuth } from './middleware/auth.js';
-import type { NotificationPayload } from './types.js';
+import notifyRouter from './routes/notify.js';
+import smsRouter from './routes/sms.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,32 +24,14 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-/**
- * Claude Code notification hook endpoint
- * Requires bearer token authentication
- * Returns 200 immediately per OPS-04 requirement
- */
-app.post('/api/notify', bearerAuth, async (req, res) => {
-  // Return 200 immediately to avoid blocking Claude Code
-  res.sendStatus(200);
+// Mount route handlers
+app.use(notifyRouter);
+app.use(smsRouter);
 
-  // Process notification asynchronously
-  (async () => {
-    try {
-      const payload = req.body as NotificationPayload;
-      console.log('Received notification:', {
-        session_id: payload.session_id,
-        type: payload.notification_type,
-        message: payload.message,
-      });
-
-      // TODO: Phase 1 Plan 3 - Add tmux capture and Twilio SMS sending
-      // For now, just log the notification
-    } catch (error) {
-      console.error('Notification processing failed:', error);
-      // Never throw - notification failures should not crash server
-    }
-  })();
+// Error handling middleware (catch-all)
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[server] Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
@@ -57,4 +39,11 @@ app.listen(PORT, () => {
   console.log(`Claude SMS Connect server listening on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`Notification endpoint: http://localhost:${PORT}/api/notify`);
+  console.log(`SMS webhook endpoint: http://localhost:${PORT}/sms/inbound`);
+  console.log('');
+  console.log('SETUP REQUIRED:');
+  console.log('1. Set up ngrok tunnel: ngrok http 3000');
+  console.log('2. Configure Twilio webhook URL in Twilio Console');
+  console.log('   - Go to: Phone Numbers -> Active Numbers -> Configure');
+  console.log('   - Set Messaging webhook to: https://your-ngrok-url/sms/inbound');
 });
