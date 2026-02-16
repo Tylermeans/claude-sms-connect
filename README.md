@@ -139,6 +139,30 @@ Add directly to `~/.claude/settings.json` (replace `YOUR_AUTH_TOKEN`):
 
 Claude SMS Connect uses tmux to capture terminal context and pipe responses back. Your Claude Code session must be running inside a tmux session.
 
+**Option A: Auto-wrap with shell function (recommended)**
+
+Add this to your `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+claude() {
+  if [ -n "$TMUX" ]; then
+    unset CLAUDECODE
+    command claude "$@"
+    return
+  fi
+  local session="$(basename "$PWD")"
+  if tmux has-session -t "$session" 2>/dev/null; then
+    tmux attach-session -t "$session"
+  else
+    tmux new-session -s "$session" "unset CLAUDECODE; command claude $*; exec $SHELL"
+  fi
+}
+```
+
+Then `source ~/.zshrc` and just type `claude` from any project directory. It automatically creates a tmux session named after your project folder — no manual tmux management needed.
+
+**Option B: Manual tmux**
+
 ```bash
 # Create a named tmux session
 tmux new-session -s my-project
