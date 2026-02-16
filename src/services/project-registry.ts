@@ -179,6 +179,23 @@ export class ProjectRegistry {
   }
 
   /**
+   * Find project ID by session ID.
+   *
+   * Used for OPS-05 cleanup when only sessionId is known.
+   *
+   * @param sessionId - Tmux session identifier
+   * @returns Project ID or undefined if not found
+   */
+  findProjectIdBySession(sessionId: string): string | undefined {
+    for (const [projectId, metadata] of this.projects.entries()) {
+      if (metadata.sessionId === sessionId) {
+        return projectId;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Remove a project from the registry.
    *
    * Used for cleanup when tmux session no longer exists (OPS-05).
