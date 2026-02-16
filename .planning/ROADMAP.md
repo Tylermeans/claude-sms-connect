@@ -13,7 +13,7 @@ This roadmap delivers a lightweight SMS relay that bridges Claude Code prompts t
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Server + Twilio Integration** - Hook receiver, tmux capture, SMS send/receive, auth, reply routing
-- [ ] **Phase 2: Multi-Project Support** - Numbered prompts, state management, arming, welcome messages
+- [x] **Phase 2: Multi-Project Support** - Numbered prompts, state management, arming, welcome messages
 - [ ] **Phase 3: Hardening + Setup** - Sensitive data filtering, rate limiting, setup automation, documentation
 
 ## Phase Details
@@ -48,8 +48,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 02-01-PLAN.md — ProjectRegistry service and per-project rate limiter middleware
-- [ ] 02-02-PLAN.md — Multi-project routing, ON/OFF arming, welcome SMS, graceful session handling
+- [x] 02-01-PLAN.md — ProjectRegistry service and per-project rate limiter middleware
+- [x] 02-02-PLAN.md — Multi-project routing, ON/OFF arming, welcome SMS, graceful session handling
 
 ### Phase 3: Hardening + Setup
 **Goal**: Server filters sensitive data from terminal output and provides one-command setup for new users
@@ -72,9 +72,9 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Server + Twilio Integration | 3/3 | ✓ Complete | 2026-02-15 |
-| 2. Multi-Project Support | 0/2 | Not started | - |
+| 2. Multi-Project Support | 2/2 | ✓ Complete | 2026-02-15 |
 | 3. Hardening + Setup | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-15*
-*Last updated: 2026-02-15 after Phase 1 execution complete*
+*Last updated: 2026-02-15 after Phase 2 execution complete*
