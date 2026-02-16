@@ -27,12 +27,43 @@ export class TmuxService {
    * @throws Error if session name contains invalid characters
    */
   validateSessionName(session: string): void {
-    const validSessionRegex = /^[a-zA-Z0-9_-]+$/;
+    const validSessionRegex = /^[a-zA-Z0-9_\- ]+$/;
     if (!validSessionRegex.test(session)) {
-      const error = `Invalid tmux session name: "${session}". Only alphanumeric, underscore, and hyphen allowed.`;
+      const error = `Invalid tmux session name: "${session}". Only alphanumeric, underscore, hyphen, and space allowed.`;
       console.error(`[TmuxService] ${error}`);
       throw new Error(error);
     }
+  }
+
+  /**
+   * List all active tmux session names.
+   */
+  async listSessions(): Promise<string[]> {
+    try {
+      const { stdout } = await execFileAsync('tmux', ['list-sessions', '-F', '#{session_name}']);
+      return stdout.trim().split('\n').filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Try to find a tmux session matching the given name.
+   * Falls back to listing sessions and matching by substring.
+   */
+  async resolveSession(hint: string): Promise<string | null> {
+    // Direct match
+    if (await this.hasSession(hint)) return hint;
+
+    // List sessions and try to match
+    const sessions = await this.listSessions();
+    if (sessions.length === 0) return null;
+    if (sessions.length === 1) return sessions[0];
+
+    // Substring match (project name might be part of session name or vice versa)
+    const lower = hint.toLowerCase();
+    const match = sessions.find(s => s.toLowerCase().includes(lower) || lower.includes(s.toLowerCase()));
+    return match || null;
   }
 
   /**

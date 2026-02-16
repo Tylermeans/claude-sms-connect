@@ -57,16 +57,33 @@ router.post('/api/notify', bearerAuth, projectRateLimiter, async (req, res) => {
 
       // Extract project info from payload with backward compatibility
       const projectId = payload.project_id || payload.session_id;
-      const sessionId = payload.tmux_session || payload.session_id || process.env.TMUX_SESSION;
       const projectName = payload.project_name || projectId;
+      const rawSessionId = payload.tmux_session || payload.session_id || process.env.TMUX_SESSION;
 
       // Validate sessionId exists
-      if (!sessionId) {
+      if (!rawSessionId) {
         console.error('[notify] No tmux session identifier found in payload or environment');
         return;
       }
 
-      console.log(`[notify] Processing notification for project: ${projectName} (${projectId})`);
+      // Resolve tmux session — the hook may send a UUID or "default" if it can't detect
+      // Try to match against actual tmux sessions using project name as hint
+      let sessionId = rawSessionId;
+      const resolved = await tmuxService.resolveSession(rawSessionId);
+      if (!resolved && projectName) {
+        const byName = await tmuxService.resolveSession(projectName);
+        if (byName) {
+          console.log(`[notify] Resolved tmux session via project name: "${projectName}" → "${byName}"`);
+          sessionId = byName;
+        }
+      } else if (resolved && resolved !== rawSessionId) {
+        console.log(`[notify] Resolved tmux session: "${rawSessionId}" → "${resolved}"`);
+        sessionId = resolved;
+      } else if (resolved) {
+        sessionId = resolved;
+      }
+
+      console.log(`[notify] Processing: ${projectName}, tmux: ${sessionId}, message: ${payload.message ? payload.message.substring(0, 80) : 'none'}, title: ${payload.title || 'none'}`);
 
       // Register project (or update existing registration)
       const isNew = projectRegistry.register(projectId, sessionId, projectName);
