@@ -99,39 +99,41 @@ Text ON to arm alerts, OFF to disarm.`;
       // Record notification timestamp for rate limiting
       projectRegistry.recordNotification(projectId);
 
-      // Capture terminal context from tmux session (last 8 lines)
-      let context: string;
-      try {
-        context = await tmuxService.captureContext(sessionId, 8);
-      } catch (error) {
-        console.error(`[notify] Failed to capture context for session ${sessionId}:`, error);
-        // Continue with generic message if capture fails
-        context = `Claude Code needs input in session "${sessionId}"`;
+      // Build context from payload message/title (preferred) or tmux capture (fallback)
+      let promptContext: string;
+
+      if (payload.message) {
+        // Use the notification message from Claude Code (contains the actual prompt)
+        promptContext = payload.message;
+      } else {
+        // Fallback: capture terminal context from tmux session (last 8 lines)
+        try {
+          promptContext = await tmuxService.captureContext(sessionId, 8);
+        } catch (error) {
+          console.error(`[notify] Failed to capture context for session ${sessionId}:`, error);
+          promptContext = 'Claude Code needs input';
+        }
       }
 
       // Get all active projects for multi-project formatting
       const activeProjects = projectRegistry.getActiveProjects();
 
-      // Format message based on number of active projects
+      // Format message with project name prefix
       let message: string;
+      const formattedPrompt = formatForMessage(promptContext, activeProjects.length === 1 ? 3500 : 1500);
 
       if (activeProjects.length === 1) {
-        // Single project - use Phase 1 format for simplicity
-        const formattedContext = formatForMessage(context, 3500);
-        message = `Claude Code needs input:\n\n${formattedContext}\n\nReply Y/N or text response`;
+        message = `${projectName} — ${payload.title || 'Claude Code needs input'}\n\n${formattedPrompt}\n\nReply Y/N or text response`;
       } else {
         // Multiple projects - use numbered format (RELAY-07)
-        const formattedContext = formatForMessage(context, 1500);
-
-        // Build numbered project list (1-indexed for user display)
         const projectList = activeProjects
           .map((p, i) => `[${i + 1}] ${p.projectName}`)
           .join('\n');
 
         message = `${projectList}
 
-Latest (${projectName}):
-${formattedContext}
+${projectName} — ${payload.title || 'Claude Code needs input'}
+${formattedPrompt}
 
 Reply: N RESPONSE (e.g., "1 Y")`;
       }
