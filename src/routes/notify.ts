@@ -99,21 +99,25 @@ Text ON to arm alerts, OFF to disarm.`;
       // Record notification timestamp for rate limiting
       projectRegistry.recordNotification(projectId);
 
-      // Build context from payload message/title (preferred) or tmux capture (fallback)
-      let promptContext: string;
+      // Build context: use payload message + tmux capture for full picture
+      const parts: string[] = [];
 
+      // Payload message from Claude Code notification (short summary)
       if (payload.message) {
-        // Use the notification message from Claude Code (contains the actual prompt)
-        promptContext = payload.message;
-      } else {
-        // Fallback: capture terminal context from tmux session (last 8 lines)
-        try {
-          promptContext = await tmuxService.captureContext(sessionId, 8);
-        } catch (error) {
-          console.error(`[notify] Failed to capture context for session ${sessionId}:`, error);
-          promptContext = 'Claude Code needs input';
-        }
+        parts.push(payload.message);
       }
+
+      // Always try tmux capture for the actual terminal content (the real question)
+      try {
+        const terminalContext = await tmuxService.captureContext(sessionId, 15);
+        if (terminalContext.trim()) {
+          parts.push(terminalContext);
+        }
+      } catch (error) {
+        console.log(`[notify] tmux capture skipped for session ${sessionId}: ${(error as Error).message}`);
+      }
+
+      const promptContext = parts.length > 0 ? parts.join('\n\n') : 'Claude Code needs input';
 
       // Get all active projects for multi-project formatting
       const activeProjects = projectRegistry.getActiveProjects();
@@ -123,7 +127,7 @@ Text ON to arm alerts, OFF to disarm.`;
       const formattedPrompt = formatForMessage(promptContext, activeProjects.length === 1 ? 3500 : 1500);
 
       if (activeProjects.length === 1) {
-        message = `${projectName} — ${payload.title || 'Claude Code needs input'}\n\n${formattedPrompt}\n\nReply Y/N or text response`;
+        message = `${projectName} — ${payload.title || 'Needs input'}\n\n${formattedPrompt}\n\nReply Y/N or text response`;
       } else {
         // Multiple projects - use numbered format (RELAY-07)
         const projectList = activeProjects
@@ -132,7 +136,7 @@ Text ON to arm alerts, OFF to disarm.`;
 
         message = `${projectList}
 
-${projectName} — ${payload.title || 'Claude Code needs input'}
+${projectName} — ${payload.title || 'Needs input'}
 ${formattedPrompt}
 
 Reply: N RESPONSE (e.g., "1 Y")`;

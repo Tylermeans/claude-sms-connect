@@ -21,25 +21,28 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 PROJECT_NAME="${PROJECT_DIR##*/}"
 SESSION_ID="${CLAUDE_SESSION_ID:-default}"
 
-# Extract message and title from notification JSON
-MESSAGE=$(echo "$NOTIFICATION" | /usr/bin/python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('message',''))" 2>/dev/null || echo "")
-TITLE=$(echo "$NOTIFICATION" | /usr/bin/python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('title',''))" 2>/dev/null || echo "")
+# Detect actual tmux session name (not the Claude session UUID)
+TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
 
-# Escape JSON special characters in message and title
-MESSAGE=$(echo "$MESSAGE" | /usr/bin/python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))" 2>/dev/null || echo '""')
-TITLE=$(echo "$TITLE" | /usr/bin/python3 -c "import sys,json; print(json.dumps(sys.stdin.read().strip()))" 2>/dev/null || echo '""')
+# Use the full notification JSON and augment it with project/session info
+/usr/bin/python3 -c "
+import sys, json, subprocess
 
-# Send notification to relay server
-curl -s -X POST "${SERVER_URL}/api/notify" \
+notification = json.loads('''$NOTIFICATION''') if '''$NOTIFICATION'''.strip() else {}
+
+payload = {
+    'session_id': '$SESSION_ID',
+    'project_id': '$PROJECT_NAME',
+    'project_name': '$PROJECT_NAME',
+    'tmux_session': '$TMUX_SESSION' or '$SESSION_ID',
+    'message': notification.get('message', ''),
+    'title': notification.get('title', ''),
+}
+
+sys.stdout.write(json.dumps(payload))
+" 2>/dev/null | curl -s -X POST "${SERVER_URL}/api/notify" \
   -H "Authorization: Bearer ${AUTH_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d "{
-    \"session_id\": \"${SESSION_ID}\",
-    \"project_id\": \"${PROJECT_NAME}\",
-    \"project_name\": \"${PROJECT_NAME}\",
-    \"tmux_session\": \"${SESSION_ID}\",
-    \"message\": ${MESSAGE},
-    \"title\": ${TITLE}
-  }" \
+  -d @- \
   --max-time 5 \
   > /dev/null 2>&1 || true
