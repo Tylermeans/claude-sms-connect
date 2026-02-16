@@ -35,6 +35,7 @@ export const projectRateLimiter = rateLimit({
   max: 1, // 1 request per window per project
   standardHeaders: true, // Include RateLimit-* headers
   legacyHeaders: false, // Disable X-RateLimit-* headers
+  validate: { keyGeneratorIpFallback: false },
 
   /**
    * Extract project_id from request body for per-project rate limiting.
