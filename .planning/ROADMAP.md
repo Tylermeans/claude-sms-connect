@@ -59,10 +59,11 @@ Plans:
   1. Terminal output is scanned and sensitive data (API keys, tokens, passwords) is redacted before SMS
   2. User can run setup script that generates auth token, creates .env, installs deps, and prints instructions
   3. User has ready-to-copy Claude Code hook configuration template
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] TBD (planned during /gsd:plan-phase 3)
+- [ ] 03-01-PLAN.md — Sensitive data redaction (TDD: redactSensitiveData + sanitize.ts integration)
+- [ ] 03-02-PLAN.md — Setup script and Claude Code hook configuration template
 
 ## Progress
 
@@ -73,7 +74,7 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Core Server + Twilio Integration | 3/3 | ✓ Complete | 2026-02-15 |
 | 2. Multi-Project Support | 2/2 | ✓ Complete | 2026-02-15 |
-| 3. Hardening + Setup | 0/TBD | Not started | - |
+| 3. Hardening + Setup | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-15*
