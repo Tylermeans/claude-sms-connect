@@ -4,7 +4,7 @@ import { redactSensitiveData } from './redact.js';
 /**
  * Removes ANSI escape codes from terminal output.
  *
- * This is the first step in preparing terminal output for SMS transmission.
+ * This is the first step in preparing terminal output for messaging.
  * Does NOT perform sensitive data filtering (that's Phase 3).
  *
  * @param text - Raw terminal text potentially containing ANSI codes
@@ -15,41 +15,39 @@ export function stripAnsiCodes(text: string): string {
 }
 
 /**
- * Formats terminal output for SMS transmission with encoding and cost optimization.
+ * Formats terminal output for Telegram transmission.
  *
  * SECURITY: Redacts sensitive data (API keys, tokens, passwords) to prevent leaks.
- * ENCODING: Removes non-ASCII characters to force GSM-7 encoding (160 chars/segment)
- * instead of UCS-2 encoding (70 chars/segment). This significantly reduces SMS costs.
- * COST CONTROL: Limits to 450 chars maximum (3 SMS segments @ 160 chars each for GSM-7).
+ * Telegram supports Unicode natively — no GSM-7 stripping needed.
+ * Telegram message limit is 4096 chars; default cap is 4000 to leave room for framing.
  *
  * Pipeline order is critical:
  * 1. Strip ANSI → clean text for pattern matching
  * 2. Redact secrets → prevent leaks BEFORE truncation
- * 3. Remove non-ASCII → force GSM-7 encoding
- * 4. Trim whitespace → clean formatting
- * 5. Truncate → cost control (no partial secrets after redaction)
+ * 3. Trim whitespace → clean formatting
+ * 4. Truncate → size control (no partial secrets after redaction)
  *
- * @param text - Text to format for SMS
- * @param maxChars - Maximum characters before truncation (default: 450)
- * @returns SMS-ready text: no ANSI, no secrets, no non-ASCII, truncated with "..." if needed
+ * @param text - Text to format for messaging
+ * @param maxChars - Maximum characters before truncation (default: 4000)
+ * @returns Message-ready text: no ANSI, no secrets, truncated with "..." if needed
  */
-export function formatForSMS(text: string, maxChars: number = 450): string {
+export function formatForMessage(text: string, maxChars: number = 4000): string {
   // Step 1: Strip ANSI codes
   let cleaned = stripAnsiCodes(text);
 
   // Step 2: Redact sensitive data (CRITICAL: must happen before truncation)
   cleaned = redactSensitiveData(cleaned);
 
-  // Step 3: Remove non-ASCII characters (forces GSM-7 encoding)
-  cleaned = cleaned.replace(/[^\x00-\x7F]/g, '');
-
-  // Step 4: Trim whitespace
+  // Step 3: Trim whitespace
   cleaned = cleaned.trim();
 
-  // Step 5: Truncate if needed
+  // Step 4: Truncate if needed
   if (cleaned.length > maxChars) {
     cleaned = cleaned.substring(0, maxChars) + '...';
   }
 
   return cleaned;
 }
+
+/** @deprecated Use formatForMessage instead */
+export const formatForSMS = formatForMessage;

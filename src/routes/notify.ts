@@ -2,7 +2,7 @@
  * Claude Code notification hook route handler
  *
  * Receives notifications from Claude Code when user input is needed.
- * Captures terminal context and sends SMS notification via Twilio.
+ * Captures terminal context and sends notification via Telegram.
  *
  * CRITICAL REQUIREMENTS (OPS-04):
  * - MUST return 200 immediately (< 100ms target)
@@ -12,7 +12,7 @@
  * PHASE 2 ENHANCEMENTS:
  * - Multi-project registration and tracking
  * - Arming state control (OFF by default per RELAY-09)
- * - Welcome SMS for new projects (RELAY-10)
+ * - Welcome message for new projects (RELAY-10)
  * - Numbered prompts for multiple active projects (RELAY-07)
  * - Per-project rate limiting (OPS-01)
  *
@@ -21,20 +21,20 @@
  * 2. Return 200 immediately
  * 3. Async: Register project in ProjectRegistry
  * 4. Async: Check armed state - suppress if disarmed
- * 5. Async: Send welcome SMS for new projects (when armed)
+ * 5. Async: Send welcome message for new projects (when armed)
  * 6. Async: Check rate limiting (per-project)
  * 7. Async: Capture terminal context from tmux session
  * 8. Async: Format numbered prompts for multi-project scenarios
- * 9. Async: Send SMS to user via Twilio
+ * 9. Async: Send message to user via Telegram
  */
 
 import { Router } from 'express';
 import { bearerAuth } from '../middleware/auth.js';
 import { projectRateLimiter } from '../middleware/rate-limit.js';
 import { tmuxService } from '../services/tmux.js';
-import { twilioService } from '../services/twilio.js';
+import { telegramService } from '../services/telegram.js';
 import { projectRegistry } from '../services/project-registry.js';
-import { formatForSMS } from '../lib/sanitize.js';
+import { formatForMessage } from '../lib/sanitize.js';
 import type { NotificationPayload } from '../types.js';
 
 const router = Router();
@@ -77,18 +77,15 @@ router.post('/api/notify', bearerAuth, projectRateLimiter, async (req, res) => {
         return;
       }
 
-      // Send welcome SMS for new projects (RELAY-10)
+      // Send welcome message for new projects (RELAY-10)
       if (isNew) {
         const welcomeMessage = `Welcome! "${projectName}" registered with Claude SMS Connect.
 
 Reply with "N Y" where N is the project number.
 Text ON to arm alerts, OFF to disarm.`;
 
-        const recipientPhone = process.env.USER_PHONE_NUMBER;
-        if (recipientPhone) {
-          await twilioService.sendSMS(recipientPhone, welcomeMessage);
-          console.log(`[notify] Welcome SMS sent for new project: ${projectName}`);
-        }
+        await telegramService.sendMessage(welcomeMessage);
+        console.log(`[notify] Welcome message sent for new project: ${projectName}`);
       }
 
       // Check rate limiting (application-level secondary check)
@@ -115,16 +112,16 @@ Text ON to arm alerts, OFF to disarm.`;
       // Get all active projects for multi-project formatting
       const activeProjects = projectRegistry.getActiveProjects();
 
-      // Format SMS message based on number of active projects
+      // Format message based on number of active projects
       let message: string;
 
       if (activeProjects.length === 1) {
         // Single project - use Phase 1 format for simplicity
-        const formattedContext = formatForSMS(context, 450);
+        const formattedContext = formatForMessage(context, 3500);
         message = `Claude Code needs input:\n\n${formattedContext}\n\nReply Y/N or text response`;
       } else {
         // Multiple projects - use numbered format (RELAY-07)
-        const formattedContext = formatForSMS(context, 200); // Shorter context for multi-project
+        const formattedContext = formatForMessage(context, 1500);
 
         // Build numbered project list (1-indexed for user display)
         const projectList = activeProjects
@@ -139,15 +136,8 @@ ${formattedContext}
 Reply: N RESPONSE (e.g., "1 Y")`;
       }
 
-      // Get recipient phone number from environment
-      const recipientPhone = process.env.USER_PHONE_NUMBER;
-      if (!recipientPhone) {
-        console.error('[notify] USER_PHONE_NUMBER not configured - cannot send SMS');
-        return;
-      }
-
-      // Send SMS via Twilio (graceful failure - won't throw)
-      await twilioService.sendSMS(recipientPhone, message);
+      // Send message via Telegram (graceful failure — won't throw)
+      await telegramService.sendMessage(message);
 
       console.log(`[notify] Notification sent successfully for project: ${projectName}`);
     } catch (error) {

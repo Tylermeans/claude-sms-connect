@@ -29,10 +29,8 @@ export interface NotificationPayload {
 export interface EnvironmentConfig {
   PORT: string;
   AUTH_TOKEN: string;
-  TWILIO_ACCOUNT_SID: string;
-  TWILIO_AUTH_TOKEN: string;
-  TWILIO_PHONE_NUMBER: string;
-  USER_PHONE_NUMBER: string;
+  TELEGRAM_BOT_TOKEN: string;
+  TELEGRAM_CHAT_ID: string;
 }
 
 /**

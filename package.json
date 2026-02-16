@@ -1,7 +1,7 @@
 {
   "name": "claude-sms-connect",
-  "version": "1.0.0",
-  "description": "SMS bridge for Claude Code - approve/respond to prompts from your phone",
+  "version": "2.0.0",
+  "description": "Telegram bridge for Claude Code - approve/respond to prompts from your phone",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -16,10 +16,10 @@
   },
   "keywords": [
     "claude",
-    "sms",
-    "twilio",
+    "telegram",
     "remote",
-    "tmux"
+    "tmux",
+    "notifications"
   ],
   "author": "",
   "license": "ISC",
@@ -27,8 +27,7 @@
     "dotenv": "^16.4.0",
     "express": "^4.19.0",
     "express-rate-limit": "^8.2.1",
-    "strip-ansi": "^7.1.0",
-    "twilio": "^5.11.0"
+    "strip-ansi": "^7.1.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.0",
