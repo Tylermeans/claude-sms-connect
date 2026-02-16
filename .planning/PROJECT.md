@@ -27,7 +27,11 @@ When you walk away from your computer, Claude Code doesn't stall — you can app
 
 ### Active
 
-(None — next milestone not yet planned)
+- [ ] Publish to npm as global CLI package (`npm install -g claude-sms-connect`)
+- [ ] CLI `setup` command generates .env, installs deps, and auto-injects hook into `~/.claude/settings.json`
+- [ ] CLI `start` command runs the relay server in foreground
+- [ ] Auto-configure Claude Code hook with backup of existing settings.json
+- [ ] Proper npm package metadata (bin, keywords, repository, engines)
 
 ### Out of Scope
 
@@ -37,6 +41,15 @@ When you walk away from your computer, Claude Code doesn't stall — you can app
 - Terminal output streaming — snapshot context in SMS is sufficient
 - Database / persistent storage — in-memory state is sufficient
 - Auto-respond to prompts — explicit Y/N per prompt is the safety feature
+
+## Current Milestone: v1.1 npm Package
+
+**Goal:** Publish claude-sms-connect to npm so anyone can install and configure it with a single command.
+
+**Target features:**
+- Global CLI binary (`claude-sms-connect setup`, `claude-sms-connect start`)
+- Auto-inject Claude Code notification hook into `~/.claude/settings.json` (with backup)
+- npm publish with proper metadata for discoverability
 
 ## Context
 
@@ -80,4 +93,4 @@ Built in 3 phases, 7 plans, 31 commits in a single day.
 | In-memory Map for project state | ES2015 insertion order guarantees, no database needed | ✓ Good — simple and sufficient |
 
 ---
-*Last updated: 2026-02-16 after v1.0 milestone*
+*Last updated: 2026-02-16 after v1.1 milestone started*
