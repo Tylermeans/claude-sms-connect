@@ -15,6 +15,12 @@ export interface NotificationPayload {
   message: string;
   title: string;
   notification_type: string;
+  /** Optional project identifier for multi-project support (Phase 2) */
+  project_id?: string;
+  /** Optional project name for multi-project support (Phase 2) */
+  project_name?: string;
+  /** Optional tmux session name (replaces TMUX_SESSION env var for multi-project) */
+  tmux_session?: string;
 }
 
 /**
