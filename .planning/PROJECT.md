@@ -14,41 +14,35 @@ When you walk away from your computer, Claude Code doesn't stall — you can app
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Relay server receives Claude Code hook payloads and sends SMS via Twilio — v1.0
+- ✓ SMS includes numbered prompts when multiple projects need input, with terminal context — v1.0
+- ✓ User replies with number + response (e.g., "1 Y") to target specific projects — v1.0
+- ✓ Freeform text responses piped back into correct tmux session via send-keys — v1.0
+- ✓ SMS alerts off by default, text "ON"/"OFF" to arm/disarm — v1.0
+- ✓ Welcome SMS on new project registration — v1.0
+- ✓ Bearer token auth on all API routes, Twilio signature validation on SMS routes — v1.0
+- ✓ Sensitive data redaction (13 patterns) before SMS transmission — v1.0
+- ✓ Per-project rate limiting (1 per 5s) — v1.0
+- ✓ One-command setup with crypto-secure token generation — v1.0
 
 ### Active
 
-- [ ] Relay server receives Claude Code hook payloads and sends SMS via Twilio
-- [ ] SMS includes numbered prompts when multiple projects need input, with a few lines of terminal context
-- [ ] User replies with number + response (e.g., "1 Y", "2 N", "3 use the auth middleware") to target specific projects
-- [ ] Freeform text responses get piped back into the correct tmux session via `tmux send-keys`
-- [ ] SMS alerts are off by default — text "ON" to arm, "OFF" to disarm
-- [ ] Welcome SMS sent when a new project/repo is registered with the relay
-- [ ] Quick responses: Y/N for approvals, plus freeform text for anything else
-- [ ] Per-connection tmux session tracking — each project maps to its own tmux session
-- [ ] Sensitive data filtering on terminal output before including in SMS
-- [ ] Server runs on the same Mac as Claude Code — near-zero resource overhead
+(None — next milestone not yet planned)
 
 ### Out of Scope
 
 - PWA / phone app — SMS is the interface, no app needed
 - Public internet exposure — local/Tailscale access only
-- Web Push notifications — SMS replaces this entirely
 - Multiple simultaneous phone clients — one phone number, one user
 - Terminal output streaming — snapshot context in SMS is sufficient
-- Desktop Electron wrapper
-- E2E encryption
-- OAuth or complex auth — bearer token for hook-to-server, Twilio handles SMS auth
+- Database / persistent storage — in-memory state is sufficient
+- Auto-respond to prompts — explicit Y/N per prompt is the safety feature
 
 ## Context
 
-The original spec (`CLAUDE_CMD_2_SMS.md`) described a PWA-based approach with WebSocket connections. This project pivots to SMS as the transport layer, which dramatically simplifies the architecture:
-
-- No client app to build, install, or maintain
-- No WebSocket connection management or reconnection logic
-- No service worker or PWA configuration
-- Works on any phone with SMS — no browser needed
-- One Twilio number serves as the single interface across all projects
+Shipped v1.0 with 1,345 LOC TypeScript + 238 LOC tests.
+Tech stack: Node.js 22, Express, Twilio SDK, tmux, TypeScript (ES modules), vitest.
+Built in 3 phases, 7 plans, 31 commits in a single day.
 
 **Architecture:**
 
@@ -61,58 +55,29 @@ The original spec (`CLAUDE_CMD_2_SMS.md`) described a PWA-based approach with We
 └──────────────────┘               └──────────────────┘                 └──────────────────┘
 ```
 
-**Flow:**
-1. Claude Code hook fires → POST to relay server
-2. Server scrapes tmux pane for context
-3. Server sends SMS via Twilio with numbered prompt + context
-4. User texts back (e.g., "1 Y")
-5. Twilio webhook delivers reply to server
-6. Server parses reply, maps to correct tmux session, sends keys
-
-**SMS Format — Outbound:**
-```
-[1] claude-sms-connect (Phase 2)
-Claude asks: Allow file write to src/index.ts?
-> ...last 3-4 lines of terminal context...
-
-Reply: 1 Y / 1 N / 1 <your response>
-```
-
-**SMS Format — Inbound:**
-```
-1 Y          → sends "Y" + Enter to project 1's tmux session
-2 N          → sends "N" + Enter to project 2's tmux session
-3 use redis  → sends "use redis" + Enter to project 3's tmux session
-ON           → arms SMS alerts
-OFF          → disarms SMS alerts
-```
-
-**Tech Stack:**
-- Server: Node.js + Express + Twilio SDK
-- Terminal: tmux (session persistence, send-keys, capture-pane)
-- SMS: Twilio (programmable SMS, webhook for inbound)
-- Auth: Bearer token (hook → server), Twilio signature validation (inbound SMS)
-- Tunnel: ngrok or Tailscale Funnel for Twilio webhook delivery
-
 ## Constraints
 
 - **SMS Provider**: Twilio — industry standard, webhook-based, ~$0.01/msg
 - **Transport**: SMS only — no app, no browser, no WebSocket
 - **Deployment**: Same machine as Claude Code — local Mac
 - **Network**: Local/Tailscale only for relay server; ngrok or Tailscale Funnel needed for Twilio webhook callback
-- **SMS Length**: Keep messages concise — SMS has 160 char segments, longer messages split and cost more
-- **Rate Limiting**: Max 1 SMS per 5 seconds to prevent hook misfires from flooding
+- **SMS Length**: Keep messages concise — SMS has 160 char segments (GSM-7 enforced)
+- **Rate Limiting**: Max 1 SMS per 5 seconds per project to prevent flooding
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| SMS over PWA | No app to install/maintain, works on any phone, simpler architecture | — Pending |
-| Twilio for SMS | Industry standard, reliable webhooks, good SDK | — Pending |
-| Numbered prompts for multi-project | Single SMS thread, parse "1 Y" format for routing | — Pending |
-| Text ON/OFF for arming | No terminal needed to toggle, works from anywhere | — Pending |
-| Off by default | Don't spam when user is at keyboard, explicit opt-in | — Pending |
-| Welcome SMS on new project | Awareness without noise, invitation to arm | — Pending |
+| SMS over PWA | No app to install/maintain, works on any phone, simpler architecture | ✓ Good — zero client-side code |
+| Twilio for SMS | Industry standard, reliable webhooks, good SDK | ✓ Good — seamless integration |
+| Numbered prompts for multi-project | Single SMS thread, parse "1 Y" format for routing | ✓ Good — intuitive UX |
+| Text ON/OFF for arming | No terminal needed to toggle, works from anywhere | ✓ Good — simple control |
+| Off by default | Don't spam when user is at keyboard, explicit opt-in | ✓ Good — noise-free |
+| execFile with args arrays | Prevent shell injection, never use exec with string interpolation | ✓ Good — security best practice |
+| GSM-7 encoding (strip non-ASCII) | 160 vs 70 chars/segment, significant cost savings | ✓ Good — 2x efficiency |
+| crypto.timingSafeEqual for auth | Prevent timing attacks on bearer token comparison | ✓ Good — security hardened |
+| TDD for redaction patterns | Security-critical code benefits from test-first approach | ✓ Good — 34 tests, zero false positives |
+| In-memory Map for project state | ES2015 insertion order guarantees, no database needed | ✓ Good — simple and sufficient |
 
 ---
-*Last updated: 2026-02-15 after initialization*
+*Last updated: 2026-02-16 after v1.0 milestone*
