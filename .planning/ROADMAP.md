@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Core Server + Twilio Integration** - Hook receiver, tmux capture, SMS send/receive, auth, reply routing
 - [x] **Phase 2: Multi-Project Support** - Numbered prompts, state management, arming, welcome messages
-- [ ] **Phase 3: Hardening + Setup** - Sensitive data filtering, rate limiting, setup automation, documentation
+- [x] **Phase 3: Hardening + Setup** - Sensitive data filtering, rate limiting, setup automation, documentation
 
 ## Phase Details
 
@@ -62,8 +62,8 @@ Plans:
 **Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 03-01-PLAN.md — Sensitive data redaction (TDD: redactSensitiveData + sanitize.ts integration)
-- [ ] 03-02-PLAN.md — Setup script and Claude Code hook configuration template
+- [x] 03-01-PLAN.md — Sensitive data redaction (TDD: redactSensitiveData + sanitize.ts integration)
+- [x] 03-02-PLAN.md — Setup script and Claude Code hook configuration template
 
 ## Progress
 
@@ -74,8 +74,8 @@ Phases execute in numeric order: 1 → 2 → 3
 |-------|----------------|--------|-----------|
 | 1. Core Server + Twilio Integration | 3/3 | ✓ Complete | 2026-02-15 |
 | 2. Multi-Project Support | 2/2 | ✓ Complete | 2026-02-15 |
-| 3. Hardening + Setup | 0/2 | Not started | - |
+| 3. Hardening + Setup | 2/2 | ✓ Complete | 2026-02-15 |
 
 ---
 *Roadmap created: 2026-02-15*
-*Last updated: 2026-02-15 after Phase 2 execution complete*
+*Last updated: 2026-02-15 after Phase 3 execution complete — ALL PHASES DONE*
