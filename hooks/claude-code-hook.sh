@@ -21,26 +21,45 @@ PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 PROJECT_NAME="${PROJECT_DIR##*/}"
 SESSION_ID="${CLAUDE_SESSION_ID:-default}"
 
-# Detect actual tmux session name (not the Claude session UUID)
-TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null || echo "")
+# Detect tmux session name with multiple fallback strategies:
+# 1. If running inside tmux, get session name directly
+# 2. If only one tmux session exists, use that
+# 3. Fall back to Claude session ID
+TMUX_SESSION=""
+if [ -n "$TMUX" ]; then
+  TMUX_SESSION=$(tmux display-message -p '#S' 2>/dev/null)
+fi
+if [ -z "$TMUX_SESSION" ]; then
+  SESSIONS=$(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+  SESSION_COUNT=$(echo "$SESSIONS" | grep -c .)
+  if [ "$SESSION_COUNT" -eq 1 ]; then
+    TMUX_SESSION="$SESSIONS"
+  fi
+fi
 
 # Use the full notification JSON and augment it with project/session info
 /usr/bin/python3 -c "
-import sys, json, subprocess
+import sys, json
 
-notification = json.loads('''$NOTIFICATION''') if '''$NOTIFICATION'''.strip() else {}
+try:
+    notification = json.loads(sys.argv[1]) if sys.argv[1].strip() else {}
+except (json.JSONDecodeError, IndexError):
+    notification = {}
+
+tmux = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else sys.argv[3]
 
 payload = {
-    'session_id': '$SESSION_ID',
-    'project_id': '$PROJECT_NAME',
-    'project_name': '$PROJECT_NAME',
-    'tmux_session': '$TMUX_SESSION' or '$SESSION_ID',
+    'session_id': sys.argv[3],
+    'project_id': sys.argv[4],
+    'project_name': sys.argv[4],
+    'tmux_session': tmux,
     'message': notification.get('message', ''),
     'title': notification.get('title', ''),
 }
 
 sys.stdout.write(json.dumps(payload))
-" 2>/dev/null | curl -s -X POST "${SERVER_URL}/api/notify" \
+" "$NOTIFICATION" "$TMUX_SESSION" "$SESSION_ID" "$PROJECT_NAME" 2>/dev/null \
+| curl -s -X POST "${SERVER_URL}/api/notify" \
   -H "Authorization: Bearer ${AUTH_TOKEN}" \
   -H "Content-Type: application/json" \
   -d @- \
